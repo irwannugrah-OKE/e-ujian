@@ -40,6 +40,17 @@
 
   <footer>© SDIT Ulil Albab Batam</footer>
 </main>
+<div id="app" hidden>
+  <a id="back" href="#" title="Kembali ke beranda e-Ujian">← Beranda</a>
+  <iframe id="frame" title="e-Ujian Siswa" allow="fullscreen; clipboard-write" allowfullscreen></iframe>
+</div>
+<style>
+  #app{position:fixed;inset:0;background:var(--bg)}
+  #app[hidden]{display:none}
+  #frame{border:0;width:100%;height:100%;display:block}
+  #back{position:fixed;left:8px;bottom:8px;z-index:2;font-size:12px;padding:6px 10px;border-radius:999px;
+        background:var(--card);color:var(--muted);border:1px solid var(--line);text-decoration:none;opacity:.85}
+</style>
 <script>
   // Link aplikasi web Apps Script
   var URL_SISWA   = "https://script.google.com/macros/s/AKfycby6OJL5b1l3pgv2zqxjDB-ELT04PkMTARFuvpZfflSfouReMeHHZuhKyDkqbW3pzzp-Dw/exec";
@@ -49,9 +60,26 @@
     var a = document.getElementById(id);
     if (url) { a.href = url; } else { a.classList.add("off"); a.querySelector("small").textContent = "Segera tersedia"; }
   }
-  set("siswa", URL_SISWA);
   set("guru",  URL_SEKOLAH ? URL_SEKOLAH + "?page=guru"  : "");
   set("admin", URL_SEKOLAH ? URL_SEKOLAH + "?page=admin" : "");
+  // Guru & Admin dibuka di tab baru (login Google tidak bisa di dalam iframe)
+  ["guru","admin"].forEach(function(id){ var a=document.getElementById(id); a.target="_blank"; a.rel="noopener"; });
+
+  // Siswa ditampilkan di dalam halaman ini, jadi alamat tetap e-ujian.eraportsdituabatam.my.id
+  var app = document.getElementById("app"), frame = document.getElementById("frame"), main = document.querySelector("main");
+  function route(){
+    var siswa = location.hash === "#siswa";
+    if (siswa && !frame.src) frame.src = URL_SISWA;
+    app.hidden = !siswa; main.hidden = siswa;
+    document.title = siswa ? "e-Ujian Siswa · SDIT Ulil Albab Batam" : "e-Ujian SDIT Ulil Albab Batam";
+  }
+  document.getElementById("siswa").href = "#siswa";
+  document.getElementById("back").addEventListener("click", function(ev){
+    ev.preventDefault();
+    if (confirm("Kembali ke beranda? Jika sedang ujian, jawaban yang belum dikirim bisa hilang.")) { frame.removeAttribute("src"); location.hash = ""; }
+  });
+  window.addEventListener("hashchange", route);
+  route();
 </script>
 </body>
 </html>
